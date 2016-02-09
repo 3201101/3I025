@@ -13,11 +13,32 @@ class VoeuxSpe :
         self.capaSpe = {}
         self.voeux = {}
         self.contient = {}
-        for i in range( 2, len(self.capaSpe)):
+        for i in range( 2, len(temp)+2):
             contenu[i]=contenu[i].split()
-            self.voeux[contenu[i][0]] = contenu[i][1:]
+            self.voeux[contenu[i][0]] = [int(a) for a in contenu[i][1:]]
             self.contient[contenu[i][0]] = []
-            self.capaSpe[contenu[i][0]] = temp[i]
+            self.capaSpe[contenu[i][0]] = int(temp[i-2])
+    
+    def gCS(self,etu):
+        dic = {} #dictionaire nomSpe->boolean(est plein)
+        i = 0 #rang du voeux a prendre en compte
+        while dicAnd(dic): #tant que toutes les spes ne sont pas pleines
+            for x in self.voeux: #pour chaques clés du dico de spe
+                if len(self.contient[x]) < self.capaSpe[x]: #test si la spe est pleine
+                    dic[x] = False
+                    rEtu = self.voeux[x][i]#alias
+                    etuAppa = etu.tabEtu[rEtu] #alias
+                    if etuAppa[1] == "":#Cas etu non appareillé
+                        self.contient[x].append(rEtu)
+                        etuAppa[1] = x
+                    else:
+                        if etu.voeux[rEtu].index(x) < etu.voeux[rEtu].index(etuAppa[1]): #Cas etu preferant la spe lui demandant
+                            self.contient[etuAppa[1]].remove(rEtu)
+                            self.contient[x].append(rEtu)
+                            etuAppa[1] = x
+                else:
+                    dic[x] = True
+        i +=1
         
 class VoeuxEtu :
     
@@ -33,25 +54,8 @@ class VoeuxEtu :
         for i in range( 1, self.nbEtu):
             contenu[i]=contenu[i].split()
             self.voeux.append(contenu[i][1:])
-            self.tabEtu.append((contenu[i][1], ""))
+            self.tabEtu.append([contenu[i][1], ""])
 
-def gCSpe( etu, spe):
-    dic = {}
-    i = 0
-    while dicAnd(dic):
-        for x in spe.voeux:
-            if len(spe.contient[x]) < spe.capaSpe):
-                dic[x] = False
-                etuAppa = etu.tabEtu[spe.voeux[x][i]]
-                if etuAppa[1] == "":
-                    spe.contient[x][len(spe.contient[x])-1] = spe.voeux[x][i]
-                    etuAppa[1] = x
-                else:
-                    if etu.voeux[spe.voeux[x][i]].index(x) > etu.voeux[spe.voeux[x][i]].index(etuAppa[1])
-            else:
-                dic[x] = True
-    i++
-          
 def dicAnd(dic):
     val = True
     for i in dic:
