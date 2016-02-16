@@ -1,4 +1,4 @@
-import exemple # Pour pouvoir utiliser les methodes de exemple.py
+import exemple 
 
 print("bonjour")
 maListe=exemple.lectureFichier("test.txt") # Execution de la methode lectureFichier du fichier exemple.

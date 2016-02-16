@@ -1,6 +1,6 @@
 def lectureFichier(s): # Definition d'une fonction, avec un parametre (s). Ne pas oublier les ":"
     monFichier = open(s, "r") # Ouverture en lecture. Indentation par rapport a la ligne d'avant (<-> bloc).
-    contenu = monFichier.readlines() # Contenu contient une liste de chaines de caracteres, chaque chaine correspond a une ligne       
+    contenu = monFichier.readlines() # Contenu contient une liste de chaines de caracteres, chaque chaine correspond a une ligne
     monFichier.close() #Fermeture du fichier
     contenu[0]=contenu[0].split()     # ligne.split() renvoie une liste de toutes les chaines contenues dans la chaine ligne (separateur=espace)
     contenu[1]=contenu[1].split()
