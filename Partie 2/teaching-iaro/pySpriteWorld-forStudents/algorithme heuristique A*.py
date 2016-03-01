@@ -2,49 +2,34 @@
 
 class APathFinder:
     
-    def __init__(self, init, goal, wall):
+    def __init__(self, init, goal, wall, heur = self.manathan):
         self.init = init
         self.goal = goal
         self.wall = wall
+        self.frontier = [self.init]
+        self.seen = []
+        self.heuristique = heur
         
-        self.path = algo(0, [], [(self.heur(init[0]),init[0])])
+        self.path = algo()
         self.iter = 0
         
-    def algo(self, distance, path, border):
-        
-        for b in border:
-            a = algo(distance+1, path.append(b), bord(b, path))
-            if (a != []):
-                return a
-            i+= 1
+    def algo(self):
+        while(len(frontier) != 0):
+            self.updateFronier()
+            seen.add(frontier.pop(0))
             
+    
+    def updateFrontier(self):
+        (x,y) = self.frontier[0]
+        for (i,j) in [(0,-1),(1,0),(-1,0),(0,1)]:
+            if((x+i,y+j) not in wall) and ((x+i,y+j) not in frontier) and self.isInBorder(x+i,y+j):
+                if (x+i,y+j) in seen:
+                    if 
+                    self.frontier.append((x+i,y+j))
+                    
+    
+    def isInBorder(self, x, y):
+        return x>=0 and x<=20 and y>=0 and y<=20
             
-        actu = init[0]
-        
-        
-        #return c.extend(algo())
-        
-    def bord(self, b, p):
-        a = []
-        for i in range(-1, 2):
-            for j in range(-1, 2):
-                c = (i, j)
-                if p.count(c) + self.wall.count(c) == 0:
-                    a.append(c)
-        return sorted(a, )
-        
-       
-    def heur(self, t):
-        x = abs(t[0] - self.goal[0][0])
-        y = abs(t[1] - self.goal[0][1])
-        
-        return (x + y)
-
-        
-    def nextPoint(self):
-        r = path[iter]
-        iter+= 1
-        return r
-        
-        
-
+    def manathan((x,y),(i,j)):
+        return abs(i-x) + abs(j-y)
