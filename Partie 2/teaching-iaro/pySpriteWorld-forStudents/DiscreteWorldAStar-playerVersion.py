@@ -99,7 +99,7 @@ def main():
         
     # on localise tous les murs
     wallStates = [w.get_rowcol() for w in game.layers['obstacle']]
-    print ("Wall states:", wallStates)
+    #print ("Wall states:", wallStates)
         
     
     #-------------------------------
@@ -114,15 +114,15 @@ def main():
     # Moving along the path
     #-------------------------------
         
-    a = APathFinder(initStates, goalStates, wallStates)    
+    # bon ici on fait juste un random walker pour exemple...
+    
 
     row,col = initStates[0]
 
     for i in range(iterations):
     
     
-        #x_inc,y_inc = random.choice([(0,1),(0,-1),(1,0),(-1,0)])
-        x_inc,y_inc = a.nextPoint();
+        x_inc,y_inc = random.choice([(0,1),(0,-1),(1,0),(-1,0)])
         next_row = row+x_inc
         next_col = col+y_inc
         if ((next_row,next_col) not in wallStates) and next_row>=0 and next_row<=20 and next_col>=0 and next_col<=20:
