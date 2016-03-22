@@ -15,14 +15,14 @@ from sprite import MovingSprite
 from ontology import Ontology
 from itertools import chain
 
-from AStar import doAStar
+from repartiteur import *
+from GTAPotion import *
 
 import pygame
 import glo
 
 import random 
 import numpy as np
-import sys
 
 
 
@@ -47,16 +47,16 @@ def init(_boardname=None):
 def main():
 
     #for arg in sys.argv:
-    iterations = 300 # default
+    iterations = 100 # default
     if len(sys.argv) == 2:
         iterations = int(sys.argv[1])
     print ("Iterations: ")
     print (iterations)
 
-    init()
-    
-    
-    
+    init("thirst")
+
+    #rep = repGaleShapley
+    rep = repEnchere
 
     
     #-------------------------------
@@ -68,7 +68,6 @@ def main():
     score = [0]*nbPlayers
     playercpt = []
 
-    
        
     #initStates= []
     
@@ -89,11 +88,19 @@ def main():
     # Boucle principale de déplacements 
     #-------------------------------
         
-    path = []
+    path = rep(initStates, goalStates, wallStates)
+    playercpt = [0 for i in range(nbPlayers)]
+
+    # Preparation du jeu d'echange de potions
     
-    for i in range(nbPlayers):
-        path.append(doAStar(initStates[i], goalStates[i], wallStates))
-        playercpt.append(0)
+    if len(sys.argv) < 2:
+        l = []
+    else:
+        l = sys.argv[2:]
+    
+    while len(l) < len(players):
+        l.append(random.randrange(5))
+    mG = PotionGame(l)
 
     for i in range(iterations):
         
@@ -114,7 +121,7 @@ def main():
                 # et on remet un même objet à un autre endroit
                 x = random.randint(1,19)
                 y = random.randint(1,19)
-                while (x,y) in wallStates:
+                while (x,y) in wallStates or (x,y) in goalStates or (x,y) in initStates:
                     x = random.randint(1,19)
                     y = random.randint(1,19)
                 o.set_rowcol(x,y)
@@ -122,8 +129,31 @@ def main():
                 game.layers['ramassable'].add(o)
                 game.mainiteration()
 
-                path[j]=doAStar((row,col), (x,y), wallStates)
-                playercpt[j] = 0
+                initStates = [o.get_rowcol() for o in game.layers['joueur']]
+                path = rep(initStates, goalStates, wallStates)
+                playercpt = [0 for i in range(nbPlayers)]
+
+            def getNeighbours(row, col):
+                l = [o.get_rowcol() for o in game.layers['joueur']]
+                r = []
+                if (row+1, col) in l:
+                    r.append(l.index((row+1, col)))
+                if (row, col+1) in l:
+                    r.append(l.index((row, col+1)))
+                if (row-1, col) in l:
+                    r.append(l.index((row-1, col)))
+                if (row, col-1) in l:
+                    r.append(l.index((row, col-1)))
+                return r
+
+            for k in getNeighbours(row,col):
+                if(k == j):
+                    print("BUG COLLISION")
+                elif(score[k] != 0 and score[j] != 0):
+                    score = mG.meet(j, k, score)
+                else:
+                    print("JEU IMPOSSIBLE, PAS ASSEZ DE POINTS")
+
                 
     
     print ("scores:", score)

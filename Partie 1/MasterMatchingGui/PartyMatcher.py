@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from PyQt5 import QtCore, QtGui, QtWidgets
-from guimatcher import Ui_GUIMatcher
+# from PyQt5 import QtCore, QtGui, QtWidgets
+# from guimatcher import Ui_GUIMatcher
 
 
 # Un Parti est un candidat aux associations, demandeur ou offreur, pouvant être connectée à un ou plusieurs autres partis.
@@ -19,10 +19,8 @@ class Party:
     def compare(self, a, b):
         for i in self.wishes:
             if i == a:
-                print("Comparaison positive, remplacement")
                 return True
             if i == b:
-                print("Comparaison négative, refus")
                 return False
 
     # Renvoie True si ce parti est pleinement satisfait (capacité de couplage maximum atteinte)
@@ -35,9 +33,6 @@ class Party:
     # Ajoute une nouvelle relation
     def meet(self, n):
         self.links.append(n)
-        print(self.name)
-        print(self.links)
-        print(self.wishes)
 
 
     # Propose une association à ce parti
@@ -94,6 +89,22 @@ class PartyMatcher:
 
         return party
 
+    # Creation d'une liste de partis a partir d'une liste de voeux
+    def createParty(self, data, capacity = 1):
+        party = []
+        for i in range(len(data)):
+            p = Party(i, data[i][0], capacity, data[i][1:])
+            party.append(p)
+
+        return party
+
+    # Cree les demandeurs
+    def setApplicants(self, data):
+        self.applicants = self.createParty(data)
+
+    # Cree les offrants
+    def setProviders(self, data):
+        self.providers = self.createParty(data)
 
     # Standardise les voeux d'une liste de parties (spécifique à la lecture de voeux Spe)
     def numberWishes(self, parties, std):
@@ -133,11 +144,10 @@ class PartyMatcher:
         self.applicants[n].links.remove(m)
 
     # Applique l'algorithme d'association de Gale-Shapley à l'avantage des demandeurs
-    def matchParties(self):
+    def match(self):
 
         c = [-1] * len(self.applicants)     # Tableau de compteurs pour les demandeurs
         self.w = len(self.applicants)       # condition de boucle (des demandeurs n'ont pas encore de couplage stable)
-        print(" < TRACE > Début de l'association.")
         # Tant qu'il existe un parti non pleinement satisfait
         while self.w > 0:
             ni = 0
@@ -145,14 +155,11 @@ class PartyMatcher:
             for i in self.applicants:
                 # ...qui ne sont pas déjà en relation,
                 if not i.isTaken():
-                    print(" < TRACE > > Début du tout d'un demandeur")
                     # Pour tous les voeux des demandeurs,
                     while c[ni] < len(i.wishes):
                         c[ni]+= 1
-                        print(" < TRACE > > > Début d'une demande")
                         # Le demandeur i fait sa demande à son voeu j
                         if self.providers[i.wishes[c[ni]]].ask(i.id, self):
-                            print(" < TRACE > > > > Relation concrétisée")
                             # En cas de réponse positive, on enregistre la nouvelle relation
                             i.meet(self.providers[i.wishes[c[ni]]].id)
                             # On note si le demandeur est pleinement satisfait (capacité max atteinte)
@@ -160,77 +167,51 @@ class PartyMatcher:
                                 self.w-= 1
                         break
                 ni+= 1
-                print(self.w)
-
 
     # Affichage
     def printMatch(self, applicants, providers):
+        print(self.getMatch())
+
+    # Recuperation des donnees
+    def getMatch(self):
         trace = []
         ni = 0
-        for i in providers:
+        for i in self.providers:
             trace.append([i.name])
             for j in i.links:
-                trace[ni].append(applicants[j].name)
+                trace[ni].append(self.applicants[j].name)
             ni+= 1
 
-        print(trace)
+        return trace
 
-    def __init__(self, appFile, proFile):
+    def __init__(self, appFile = None, proFile = None):
 
-        print("\n\t/// CHARGEMENT ///\n")
         # Chargement des fichiers
-        self.etu = self.loadParty(appFile, False)
-        self.spe = self.loadParty(proFile, True)
+        if appFile:
+            self.etu = self.loadParty(appFile, False)
+        if proFile:
+            self.spe = self.loadParty(proFile, True)
 
-        print("\n\t/// NORMALISATION ///\n")
         # Normalisation des voeux étudiants
-        self.applicants = self.numberWishes(self.etu, self.spe)
-        self.providers = self.intWishes(self.spe)
-
-        print("\n\t/// MATCHING AVANTAGE ETUDIANT ///\n")
-        # Matching côté spécialités
-        self.matchParties()
-
-        print("\n\t/// AFFICHAGE MATCHING ETUDIANT ///\n")
-        # Affichage
-        self.printMatch(self.applicants, self.providers)
-        self.printMatch(self.providers, self.applicants)
-
-        print("\n\t/// CHARGEMENT ///\n")
-        # Chargement des fichiers
-        self.etu = self.loadParty("FichierPrefEtu2.txt", False)
-        self.spe = self.loadParty("FichierPrefSpe.txt", True)
-
-        print("\n\t/// NORMALISATION ///\n")
-        # Normalisation des voeux étudiants
-        self.providers = self.numberWishes(self.etu, self.spe)
-        self.applicants = self.intWishes(self.spe)
-
-        print("\n\t/// MATCHING AVANTAGE SPECIALITE ///\n")
-        # Matching côté spécialités
-        self.matchParties()
-
-        print("\n\t/// AFFICHAGE MATCHING SPECIALITE ///\n")
-        # Affichage
-        self.printMatch(self.applicants, self.providers)
-        self.printMatch(self.providers, self.applicants)
-
+        if appFile and proFile:
+            self.applicants = self.numberWishes(self.etu, self.spe)
+            self.providers = self.intWishes(self.spe)
 
 # Interface graphique
-class GUIMatcher(Ui_GUIMatcher):
-    def __init__(self, dialog):
-        Ui_GUIMatcher.__init__(self)
-        self.setupUi(dialog)
-        self.matchButton.clicked.connect(self.match)
+# class GUIMatcher(Ui_GUIMatcher):
+#     def __init__(self, dialog):
+#         Ui_GUIMatcher.__init__(self)
+#         self.setupUi(dialog)
+#         self.matchButton.clicked.connect(self.match)
 
-    def match(self):
-        PartyMatcher(self.appFile.text(), self.proFile.text())
+#     def match(self):
+#         PartyMatcher(self.appFile.text(), self.proFile.text())
 
-if __name__ == '__main__':
-    app = QtWidgets.QApplication(sys.argv)
-    dialog = QtWidgets.QDialog()
+# if __name__ == '__main__':
+#     app = QtWidgets.QApplication(sys.argv)
+#     dialog = QtWidgets.QDialog()
 
-    prog = GUIMatcher(dialog)
+#     prog = GUIMatcher(dialog)
 
-    dialog.show()
-    sys.exit(app.exec_())
+#     dialog.show()
+#     sys.exit(app.exec_())
