@@ -1,0 +1,3 @@
+[submodule "Partie 3/pySpriteWorld"]
+	path = Partie 3/pySpriteWorld
+	url = https://github.com/yannche/pySpriteWorld.git
