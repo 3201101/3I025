@@ -127,7 +127,7 @@ class Agent(object):
 
             print "\n# Current robot at " + str(p.get_centroid()) + " with orientation " + str(p.orientation())
 
-            sensor_infos = sensors[p] # sensor_infos est une liste de namedtuple (un par capteur).
+            #sensor_infos = sensors[p] # sensor_infos est une liste de namedtuple (un par capteur).
             for i,impact in enumerate(sensors[p]):  # impact est donc un namedtuple avec plein d'infos sur l'impact: namedtuple('RayImpactTuple', ['sprite','layer','x', 'y','dist_from_border','dist_from_center','rel_angle_degree','abs_angle_degree'])
                 if impact.dist_from_border > maxSensorDistance:
                     print "- sensor #" + str(i) + " touches nothing"

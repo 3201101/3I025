@@ -72,8 +72,9 @@ game = Game()
 agents = []
 
 arena = 0
+maxArena = 0
 
-nbAgents = 8 # doit être pair et inférieur a 32
+nbAgents = 2 # doit être pair et inférieur a 32
 maxSensorDistance = 30              # utilisé localement.
 maxRotationSpeed = 5
 maxTranslationSpeed = 1
@@ -82,7 +83,7 @@ SensorBelt = [-170,-80,-40,-20,+20,40,80,+170]  # angles en degres des senseurs
 screen_width=512 #512,768,... -- multiples de 32  
 screen_height=512 #512,768,... -- multiples de 32
 
-maxIterations = 600 # infinite: -1
+maxIterations = 2000 # infinite: -1
 maxGeneIteration = -1
 showSensors = False
 frameskip = 4   # 0: no-skip. >1: skip n-1 frames
@@ -100,9 +101,10 @@ def setOccupancyGrid():
 fitness = 0
 bestFitness = - sys.maxint
 sigma = 0.1
-params = [random()*2.-1 for x in range(2 + len(SensorBelt) * 2 * 3)] # [biais rotation, translation, parametre capteur mur, allié, enemie]
+#params = [random()*2.-1 for x in range(2 + len(SensorBelt) * 2 * 3)] # [biais rotation, translation, parametre capteur mur, allié, enemie]
+params = [-0.2014739761815377, 0.21487781836967867, 0.442789153973614, -0.4118749509783299, 0.30163509729180005, 0.3850397852559307, -0.4652249751776765, 0.5090007121610801, 0.47145567979351627, -0.06498357761077037, 0.48499454919496643, -0.4034713622518393, 0.05515171194447553, 0.48339229706217635, -0.2568544366430775, 0.44118396525542164, -0.4751629935563958, 0.47799777051322934, 0.02235031847055309, -0.4576630276228631, -0.5430439798760773, 0.0012987114851856956, -0.3548577612209205, -0.1051679427044526, 0.4048799050122361, 0.3800734667942314, -0.40545987515678455, -0.5565654258568006, 0.21687234366566413, 0.37298996577742044, -0.13736355918924353, 0.029737631786619863, 0.027899750673287375, 0.1745504807417293, -0.5216861348473061, -0.4976376705515537, 0.2316133946220697, -0.363661537808133, 0.2393885465798549, -0.3457623751326898, 0.43995500918588876, -0.5566504244324237, 0.3275932348495285, -0.3048709301008795, 0.4945764187511403, -0.5070761385795859, 0.46578218066782234, 0.4896238356577611, -0.17506722342858144, -0.5387521599905583]
 def algoGen():
-    global fitness, bestFitness, sigma, bestParams
+    global fitness, bestFitness, sigma, bestParams, iteration
     
     print "BEST FITNESS :" + str(bestFitness)
     print "FITNESS :" + str(fitness)
@@ -114,10 +116,10 @@ def algoGen():
         print bestParams
     else :
         print "NEW SIGMA (poor) : " + str(sigma)
-        for i in range(len(SensorBelt)*2+2):
-            params[i] = math.tanh(bestParams[i] + gauss(0,sigma))
-        fitness = 0
-        sigma = max(2 ** (-1./4.) * sigma * (1  + math.sin(iteration / 2000)), 0.001 * (1 + math.sin(iteration / 2000)))
+        sigma = max(2 ** (-1./4.) * sigma * (1  + math.sin(geneIteration)), 0.001 * (1 + math.sin(geneIteration)))
+    for i in range(2 + len(SensorBelt) * 2 * 3):
+        params[i] = math.tanh(bestParams[i] + gauss(0,sigma))  
+    fitness = 0
 
 '''''''''''''''''''''''''''''
 '''''''''''''''''''''''''''''
@@ -475,12 +477,12 @@ while geneIteration != maxGeneIteration :
         
     ret = onExit()
     fitness += ret[0]
-    if arena == 2:
+    if arena == maxArena:
         algoGen()    
         geneIteration += 1
     
     reInitAgents()
-    arena = (arena + 1) % 3
+    arena = (arena + 1) % (maxArena+1)
     setupArena()
     setOccupancyGrid()
     game.mainiteration()

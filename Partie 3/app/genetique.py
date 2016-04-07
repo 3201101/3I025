@@ -109,9 +109,9 @@ class Agent(object):
             print "First generation!"
             p.x = 300
             p.y = 300
-            #for i in range(len(SensorBelt)*2+2):
-            #    self.params.append(random()*2.-1)
-            self.params = [0.1982600370693404, -0.022133801750107603, 0.1955882128881181, -0.18808473609742524, 0.13593060757536313, 0.20575350929996614, 0.1603741670941603, -0.18847709097832088, -0.03687561420758503, -0.19082755284750214, 0.22494780823102833, -0.1963210515376607, 0.20903438141903344, 0.16265328425937506, 0.17371041376604385, -0.1699767957779372, -0.18542222211368836, -0.15188326665341703]
+            for i in range(len(SensorBelt)*2+2):
+                self.params.append(random()*2.-1)
+            #self.params = [0.17890907936526396, 0.027866239797378872, 0.21580482017838767, -0.1903042969462041, 0.14882213169439848, 0.1626186712212621, 0.2415528105928612, -0.16777419668360957, -0.08029016862452827, -0.23990556319869122, 0.2588834619528892, -0.2773016417632488, 0.15513259298543905, 0.10962240489171488, 0.17287355561587886, -0.23302597836112618, -0.1951955904255634, -0.04113553276233736]
             self.bestParams = self.params[:]
             self.fitness = 0.
             self.bestFitness = float("-inf")
@@ -123,7 +123,7 @@ class Agent(object):
             if self.bestFitness < self.fitness:
                 self.bestFitness = self.fitness
                 self.bestParams = self.params[:]
-                self.sigma = min(0.1, self.sigma*2)
+                self.sigma = min(max(0.1, self.sigma*2), 20)
                 print "NEW SIGMA (better) : " + str(self.sigma)
                 print(self.bestParams)
                 print(self.params)
@@ -150,7 +150,7 @@ class Agent(object):
             if dist < minDist:  # Recuperation de la valeur minimale
                 minDist = dist
             translation += dist * self.params[j]
-            rotation += dist * self.params[j]
+            rotation += dist * self.params[j+1]
             j = j + 1
 
         if rotation > maxRotationSpeed:
@@ -160,7 +160,7 @@ class Agent(object):
 
         if translation > maxTranslationSpeed:
             translation = maxTranslationSpeed
-        elif translation < maxTranslationSpeed:
+        elif translation < -maxTranslationSpeed:
             translation = -maxTranslationSpeed
 
         p.rotate(rotation)   
@@ -238,6 +238,7 @@ class MyTurtle(Turtle): # also: limit robot speed through this derived class
 def onExit():
     print "\n[Terminated]"
     print agents[0].bestParams
+
 '''''''''''''''''''''''''''''
 '''''''''''''''''''''''''''''
 '''  Main loop            '''
