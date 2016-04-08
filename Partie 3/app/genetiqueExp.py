@@ -74,7 +74,7 @@ agents = []
 arena = 0
 maxArena = 0
 
-nbAgents = 2 # doit être pair et inférieur a 32
+nbAgents = 4 # doit être pair et inférieur a 32
 maxSensorDistance = 30              # utilisé localement.
 maxRotationSpeed = 5
 maxTranslationSpeed = 1
@@ -83,10 +83,10 @@ SensorBelt = [-170,-80,-40,-20,+20,40,80,+170]  # angles en degres des senseurs
 screen_width=512 #512,768,... -- multiples de 32  
 screen_height=512 #512,768,... -- multiples de 32
 
-maxIterations = 2000 # infinite: -1
+maxIterations = 6000 # infinite: -1
 maxGeneIteration = -1
 showSensors = False
-frameskip = 4   # 0: no-skip. >1: skip n-1 frames
+frameskip = 200   # 0: no-skip. >1: skip n-1 frames
 verbose = True
 
 def setOccupancyGrid():
@@ -98,11 +98,34 @@ def setOccupancyGrid():
             l.append("_")
         occupancyGrid.append(l)
 
+ficSolo = "bestParamsSolo.txt"
+ficBackupSolo = "bestParamsBackupSolo.txt"
+ficMulti = "bestParams.txt"
+nomFic = ficSolo
+def saveParamsIn(f, p):
+    with open(f, "w") as fic:
+        fic.write(repr(params))
+    fic.close()
+def getParamsIn(f):
+    with open(f, "r") as fic:
+        return eval(fic.read())
+    fic.close()
+
 fitness = 0
 bestFitness = - sys.maxint
 sigma = 0.1
 #params = [random()*2.-1 for x in range(2 + len(SensorBelt) * 2 * 3)] # [biais rotation, translation, parametre capteur mur, allié, enemie]
-params = [-0.2014739761815377, 0.21487781836967867, 0.442789153973614, -0.4118749509783299, 0.30163509729180005, 0.3850397852559307, -0.4652249751776765, 0.5090007121610801, 0.47145567979351627, -0.06498357761077037, 0.48499454919496643, -0.4034713622518393, 0.05515171194447553, 0.48339229706217635, -0.2568544366430775, 0.44118396525542164, -0.4751629935563958, 0.47799777051322934, 0.02235031847055309, -0.4576630276228631, -0.5430439798760773, 0.0012987114851856956, -0.3548577612209205, -0.1051679427044526, 0.4048799050122361, 0.3800734667942314, -0.40545987515678455, -0.5565654258568006, 0.21687234366566413, 0.37298996577742044, -0.13736355918924353, 0.029737631786619863, 0.027899750673287375, 0.1745504807417293, -0.5216861348473061, -0.4976376705515537, 0.2316133946220697, -0.363661537808133, 0.2393885465798549, -0.3457623751326898, 0.43995500918588876, -0.5566504244324237, 0.3275932348495285, -0.3048709301008795, 0.4945764187511403, -0.5070761385795859, 0.46578218066782234, 0.4896238356577611, -0.17506722342858144, -0.5387521599905583]
+#params = [-0.19379725564407146, 0.2068717673957361, 0.375411719437168, -0.35433635845014677, 0.27740239266482, 0.33965778075331854, -0.38918539000259744, 0.4120756599896228, 0.39324892350916346, -0.06771803641786954, 0.3977664598900256, -0.3491898102902591, 0.05750842098777558, 0.398011997053665, -0.24303902387509285, 0.37222710049424634, -0.39225275556208045, 0.3959385415177809, 0.02199656747135934, -0.38226640145920854, -0.4288457860258979, 0.002577676570713518, -0.3177418603829205, -0.10434898228910122, 0.35041887545928435, 0.33344469112798586, -0.35097729354456353, -0.4351838040600683, 0.2084481263552122, 0.32792910908718603, -0.1359401784913763, 0.03015292455576684, 0.029576766769487537, 0.16880924935088962, -0.42034112327011697, -0.40578404910031596, 0.21976004159303092, -0.3220420070637118, 0.22856166780614548, -0.3093107229855811, 0.37302561602697976, -0.43726207744864637, 0.29641882261938274, -0.2789534170612641, 0.4040411545449998, -0.40926864317336364, 0.38781002286701344, 0.3987471796343858, -0.17027715958519907, -0.42622423324056896]
+
+def saveParams() :
+    saveParamsIn(nomFic, params)
+def setParams():
+    global params
+    params = getParamsIn(nomFic)
+
+params = []
+setParams()
+
 def algoGen():
     global fitness, bestFitness, sigma, bestParams, iteration
     
@@ -259,23 +282,17 @@ class AgentTypeB(object):
 
         p = self.robot
 
-        # actions
-        sensor_infos = sensors[p] # sensor_infos est une liste de namedtuple (un par capteur).
-        #print "sensor_infos: ", sensor_infos[0].dist_from_border
-        distGauche = sensor_infos[2].dist_from_border
-        if distGauche > maxSensorDistance:
-            distGauche = maxSensorDistance # borne
-        distDroite = sensor_infos[5].dist_from_border
-        if distDroite > maxSensorDistance:
-            distDroite = maxSensorDistance # borne
+        rotation = 0
+        for i,impact in enumerate(sensors[p]):
+            if impact.dist_from_border < maxSensorDistance:
+                rotation -= SensorBelt[i] * ( 1 - impact.dist_from_border / maxSensorDistance)
 
-        if distGauche < distDroite:
-            p.rotate( +1 )
-        elif distGauche > distDroite:
-            p.rotate( -1 )
-        else:
-            p.rotate( 0 )
+        if rotation > maxRotationSpeed:
+            rotation = maxRotationSpeed
+        elif rotation < -maxRotationSpeed:
+            rotation = -maxRotationSpeed        
         
+        p.rotate( rotation )   # normalisé -1,+1 -- valeur effective calculé avec maxRotationSpeed et maxTranslationSpeed
         p.forward(1) # normalisé -1,+1
 
         return
@@ -470,8 +487,10 @@ while geneIteration != maxGeneIteration :
         # ce qui est lourd....
         sensors = throw_rays_for_many_players(game, game.layers['joueur'], SensorBelt, max_radius = maxSensorDistance+game.player.diametre_robot(), show_rays=showSensors)
         stepWorld()
-        #if iteration % 200 == 0:
-        #    displayOccupancyGrid()
+        if iteration % 200 == 0:
+            t = displayOccupancyGrid()[0]
+            if ((bestFitness * iteration) / maxIterations) / 2 > t:
+                break
         game.mainiteration()
         iteration = iteration + 1
         
