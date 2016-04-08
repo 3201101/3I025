@@ -72,7 +72,7 @@ game = Game()
 agents = []
 
 arena = 0
-maxArena = 0
+maxArena = 1
 
 nbAgents = 4 # doit être pair et inférieur a 32
 maxSensorDistance = 30              # utilisé localement.
@@ -111,6 +111,7 @@ def getParamsIn(f):
         return eval(fic.read())
     fic.close()
 
+outRatio = 0.6
 fitness = 0
 bestFitness = - sys.maxint
 sigma = 0.1
@@ -489,7 +490,7 @@ while geneIteration != maxGeneIteration :
         stepWorld()
         if iteration % 200 == 0:
             t = displayOccupancyGrid()[0]
-            if ((bestFitness * iteration) / maxIterations) / 2 > t:
+            if bestFitness * iteration / maxIterations /maxArena * outRatio  > t:
                 break
         game.mainiteration()
         iteration = iteration + 1
@@ -501,7 +502,7 @@ while geneIteration != maxGeneIteration :
         geneIteration += 1
     
     reInitAgents()
-    arena = (arena + 1) % (maxArena+1)
+    arena = (arena + 1) % (maxArena)
     setupArena()
     setOccupancyGrid()
     game.mainiteration()
