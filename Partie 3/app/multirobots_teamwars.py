@@ -72,7 +72,7 @@ game = Game()
 agents = []
 
 arena = 0
-maxArena = 3
+maxArena = 1
 
 nbAgents = 8 # doit être pair et inférieur a 32
 maxSensorDistance = 30              # utilisé localement.
@@ -83,7 +83,7 @@ SensorBelt = [-170,-80,-40,-20,+20,40,80,+170]  # angles en degres des senseurs
 screen_width=512 #512,768,... -- multiples de 32  
 screen_height=512 #512,768,... -- multiples de 32
 
-maxIterations = 2000 # infinite: -1 #6000
+maxIterations = 600 # infinite: -1 #6000
 maxGeneIteration = -1
 showSensors = False
 frameskip = 100   # 0: no-skip. >1: skip n-1 frames
@@ -110,6 +110,10 @@ def getParamsIn(f):
     with open(f, "r") as fic:
         return eval(fic.read())
     fic.close()
+def backupParams():
+    with open(ficBackup, "a") as fic:
+        fic.write(repr(params)+'\n')
+    fic.close()
 
 outRatio = 0.6
 fitness = 0
@@ -120,6 +124,7 @@ sigma = 0.1
 
 def saveParams() :
     saveParamsIn(nomFic, params)
+    backupParams()
 def setParams():
     global params
     params = getParamsIn(nomFic)
@@ -141,10 +146,10 @@ def algoGen():
         print bestParams
     else :
         print "NEW SIGMA (poor) : " + str(sigma)
-        for i in range(len(SensorBelt)*2+2):
-            params[i] = math.tanh(bestParams[i] + gauss(0,sigma))
-        fitness = 0
         sigma = max(2 ** (-1./4.) * sigma * (1  + math.sin(iteration / 2000)), 0.001 * (1 + math.sin(iteration / 2000)))
+    for i in range(len(SensorBelt)*2+2):
+        params[i] = math.tanh(bestParams[i] + gauss(0,sigma))
+    fitness = 0
 
 '''''''''''''''''''''''''''''
 '''''''''''''''''''''''''''''
@@ -489,20 +494,28 @@ while geneIteration != maxGeneIteration :
         # ce qui est lourd....
         sensors = throw_rays_for_many_players(game, game.layers['joueur'], SensorBelt, max_radius = maxSensorDistance+game.player.diametre_robot(), show_rays=showSensors)
         stepWorld()
-        t = displayOccupancyGrid()[0]
-        if bestFitness * iteration / maxIterations / maxArena * outRatio > t:
-            break
+        if iteration % 200 == 0:
+            t = displayOccupancyGrid()[0]
+            if bestFitness * iteration / maxIterations / maxArena * outRatio > t:
+                arena = maxArena - 1
+                break
         game.mainiteration()
         iteration = iteration + 1
         
     ret = onExit()
-    fitness += ret[0]
-    if arena == 2:
+    if ret[0] > ret[1]:
+        fitness += 2 * ret[0]
+    elif ret[0] < ret[1]:
+        fitness += ret[0] // 2
+    else :
+        fitness += ret[0]
+  
+    if arena == maxArena - 1:
         algoGen()    
         geneIteration += 1
     
     reInitAgents()
-    arena = (arena + 1) % (maxArena)
+    arena = (arena + 1) % maxArena
     setupArena()
     setOccupancyGrid()
     game.mainiteration()

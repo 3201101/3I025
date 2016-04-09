@@ -99,7 +99,7 @@ def setOccupancyGrid():
         occupancyGrid.append(l)
 
 ficSolo = "bestParamsSolo.txt"
-ficBackupSolo = "bestParamsBackupSolo.txt"
+ficBackup = "bestParamsBackupSolo.txt"
 ficMulti = "bestParams.txt"
 nomFic = ficSolo
 def saveParamsIn(f, p):
@@ -109,6 +109,11 @@ def saveParamsIn(f, p):
 def getParamsIn(f):
     with open(f, "r") as fic:
         return eval(fic.read())
+    fic.close()
+def backupParams():
+    global params
+    with open(ficBackup, "w") as fic:
+        fic.write(repr(params)+'\n')
     fic.close()
 
 outRatio = 0.6
@@ -120,6 +125,7 @@ sigma = 0.1
 
 def saveParams() :
     saveParamsIn(nomFic, params)
+    backupParams()
 def setParams():
     global params
     params = getParamsIn(nomFic)
