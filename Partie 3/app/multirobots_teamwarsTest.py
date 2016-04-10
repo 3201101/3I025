@@ -84,7 +84,7 @@ screen_width=512 #512,768,... -- multiples de 32
 screen_height=512 #512,768,... -- multiples de 32
 
 maxIterations = 6000 # infinite: -1
-#maxGeneIteration = 0
+maxGeneIteration = 1
 showSensors = False
 frameskip = 4   # 0: no-skip. >1: skip n-1 frames
 verbose = True
@@ -521,33 +521,33 @@ setupArena()
 setupAgents()
 game.mainiteration()
 
-#geneIteration = 0
-#while geneIteration != maxGeneIteration :
+geneIteration = 0
+while geneIteration != maxGeneIteration :
 
-iteration = 0
-while iteration != maxIterations:
-    # c'est plus rapide d'appeler cette fonction une fois pour toute car elle doit recalculer le masque de collision,
-    # ce qui est lourd....
-    sensors = throw_rays_for_many_players(game, game.layers['joueur'], SensorBelt, max_radius = maxSensorDistance+game.player.diametre_robot(), show_rays=showSensors)
-    stepWorld()
-    if iteration % 200 == 0:
-        t = displayOccupancyGrid()[0]
-#            if bestFitness * iteration / maxIterations /maxArena * outRatio  > t:
-#                break
-    game.mainiteration()
-    iteration = iteration + 1
-    
-ret = onExit()
-#    fitness += ret[0]
-#    if arena == maxArena:
+    iteration = 0
+    while iteration != maxIterations:
+        # c'est plus rapide d'appeler cette fonction une fois pour toute car elle doit recalculer le masque de collision,
+        # ce qui est lourd....
+        sensors = throw_rays_for_many_players(game, game.layers['joueur'], SensorBelt, max_radius = maxSensorDistance+game.player.diametre_robot(), show_rays=showSensors)
+        stepWorld()
+        if iteration % 200 == 0:
+            t = displayOccupancyGrid()[0]
+    #            if bestFitness * iteration / maxIterations /maxArena * outRatio  > t:
+    #                break
+        game.mainiteration()
+        iteration = iteration + 1
+        
+    ret = onExit()
+    #    fitness += ret[0]
+    if arena == maxArena:
 #        algoGen()    
-#        geneIteration += 1
-
-reInitAgents()
-arena = (arena + 1) % (maxArena)
-setupArena()
-setOccupancyGrid()
-game.mainiteration()
+        geneIteration += 1
+    
+    reInitAgents()
+    arena = (arena + 1) % (maxArena)
+    setupArena()
+    setOccupancyGrid()
+    game.mainiteration()
         
 #except SystemExit as e:
     #onExit()

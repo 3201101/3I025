@@ -161,7 +161,7 @@ def algoGen():
         print "NEW SIGMA (poor) : " + str(sigma)
         sigma = max(2 ** (-1./4.) * sigma * (1  + math.sin(iteration / 2000)), 0.001 * (1 + math.sin(iteration / 2000)))
     for i in range(len(SensorBelt)*2+2):
-        params[i] = math.tanh(bestParams[i] + gauss(0,sigma))
+        params[i] = bestParams[i] + gauss(0,sigma)
     fitness = 0
 
 '''''''''''''''''''''''''''''
