@@ -100,6 +100,7 @@ def setOccupancyGrid():
 
 
 fic = "bestParams.txt"
+ficBackup = "bestParamsBackup.txt"
 nomFic = fic
 #def saveParamsIn(f, p):
 #    with open(f, "w") as fic:
@@ -128,9 +129,16 @@ def getParamsIn(f):
 def setParams():
     global params
     params = getParamsIn(nomFic)
+def setEnemisParams():
+    global enemisParams
+    with open(ficBackup, "r") as fic:
+        enemisParams = eval(fic.readlines()[-1])
+    fic.close()
 
 params = []
+enemisParams = []
 setParams()
+setEnemisParams()
 
 #def algoGen():
 #    global fitness, bestFitness, sigma, bestParams, iteration
@@ -288,18 +296,47 @@ class AgentTypeB(object):
 
         p = self.robot
 
-        rotation = 0
-        for i,impact in enumerate(sensors[p]):
-            if impact.dist_from_border < maxSensorDistance:
-                rotation -= SensorBelt[i] * ( 1 - impact.dist_from_border / maxSensorDistance)
+        # actions
+        sensor_infos = sensors[p]
+
+        def isEnemy(p):
+            return agents[p].getType != self.agentType
+        
+        # calcul des sorties motrices en fonction des parametres
+        j = 0
+        translation = enemisParams[j] # biais 1
+        j = j + 1
+        rotation = enemisParams[j] # biais 2
+        j = j + 1
+
+        for i in range(len(SensorBelt)): # parametres pour la rotation
+            dist = sensor_infos[i].dist_from_border
+            if dist > maxSensorDistance:
+                dist = maxSensorDistance # borne
+            if sensor_infos[i].layer == 'joueur':
+                if isEnemy(sensor_infos[i].sprite.numero):
+                    translation += (1 - dist / maxSensorDistance) * enemisParams[j+4]
+                    rotation += (1 - dist / maxSensorDistance) * enemisParams[j+5]
+                else :
+                    translation += (1 - dist / maxSensorDistance) * enemisParams[j+2]
+                    rotation += (1 - dist / maxSensorDistance) * enemisParams[j+3]
+            else:
+                translation += (1 - dist / maxSensorDistance) * enemisParams[j]
+                rotation += (1 - dist / maxSensorDistance) * enemisParams[j+1]
+            j += 6
 
         if rotation > maxRotationSpeed:
             rotation = maxRotationSpeed
         elif rotation < -maxRotationSpeed:
-            rotation = -maxRotationSpeed        
-        
-        p.rotate( rotation )   # normalisé -1,+1 -- valeur effective calculé avec maxRotationSpeed et maxTranslationSpeed
-        p.forward(1) # normalisé -1,+1
+            rotation = -maxRotationSpeed
+
+        if translation > maxTranslationSpeed:
+            translation = maxTranslationSpeed
+        elif translation < -maxTranslationSpeed:
+            translation = -maxTranslationSpeed
+
+        p.rotate(rotation)   
+        p.forward(translation)
 
         return
 
