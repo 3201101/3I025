@@ -72,7 +72,7 @@ game = Game()
 agents = []
 
 arena = 0
-maxArena = 1
+maxArena = 3
 
 nbAgents = 8 # doit être pair et inférieur a 32
 maxSensorDistance = 30              # utilisé localement.
