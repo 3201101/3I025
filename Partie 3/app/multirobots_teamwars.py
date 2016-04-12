@@ -72,7 +72,7 @@ game = Game()
 agents = []
 
 arena = 0
-maxArena = 1
+maxArena = 3
 
 nbAgents = 8 # doit être pair et inférieur a 32
 maxSensorDistance = 30              # utilisé localement.
@@ -114,7 +114,7 @@ def getParamsIn(f):
 enemisCpt = 0
 enemisMod = 5
 
-outRatio = 0.6
+outRatio = 0.3
 fitness = 0
 bestFitness = - sys.maxint
 sigma = 1
